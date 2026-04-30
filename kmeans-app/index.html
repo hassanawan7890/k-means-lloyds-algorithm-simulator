@@ -3,58 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K-Means Motion Lab</title>
+    <title>K-Means &amp; Lloyd's Algorithm Simulator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="page-shell">
-        <div class="ambient ambient-a"></div>
-        <div class="ambient ambient-b"></div>
-        <div class="ambient ambient-c"></div>
 
-        <header class="hero">
-            <div class="hero-copy">
-                <p class="eyebrow">Interactive Lloyd-Forgy Playground</p>
-                <h1>K-Means Motion Lab</h1>
-                <p class="hero-text">
-                    Build a dataset by typing coordinates, clicking directly on the plane,
-                    importing your original A4 input format, or generating a fresh scene.
-                    Then watch the clusters settle with the same white-canvas visual language
-                    and seeded color feel from your C++ version.
-                </p>
-            </div>
+    <nav class="topbar">
+        <div class="topbar-brand">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="5" cy="5" r="3" fill="#8b5cf6"/><circle cx="13" cy="5" r="3" fill="#22d3ee"/><circle cx="9" cy="13" r="3" fill="#a78bfa"/></svg>
+            K-Means Simulator
+        </div>
+        <div class="topbar-nav">
+            <button class="nav-tab active" data-page="simulator" type="button">Simulator</button>
+            <button class="nav-tab" data-page="guide" type="button">Guide</button>
+            <button class="nav-tab" data-page="about" type="button">About</button>
+            <button class="nav-tab" data-page="feedback" type="button">Feedback</button>
+        </div>
+    </nav>
 
-            <div class="hero-meta">
-                <div class="meta-chip">
-                    <span>Input Modes</span>
-                    <strong>Manual, click, import, generate</strong>
+    <div class="page active" id="page-simulator">
+        <div class="sim-layout">
+
+            <aside class="sidebar">
+                <div class="sidebar-tabs">
+                    <button class="stab active" data-stab="data" type="button">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+                        Data
+                    </button>
+                    <button class="stab" data-stab="run" type="button">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polygon points="3,2 12,7 3,12" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                        Run
+                    </button>
                 </div>
-                <div class="meta-chip">
-                    <span>Simulation</span>
-                    <strong>Animated centroid movement</strong>
-                </div>
-                <div class="meta-chip">
-                    <span>Deploy</span>
-                    <strong>Static and Vercel-ready</strong>
-                </div>
-            </div>
-        </header>
 
-        <main class="workspace">
-            <aside class="control-rail">
-                <section class="panel">
-                    <div class="section-head">
-                        <div>
-                            <p class="section-label">Scene Builder</p>
-                            <h2>Choose Your Input Flow</h2>
-                        </div>
-                        <p class="section-note">Everything you load here becomes the next simulation scene.</p>
-                    </div>
-
-                    <div class="mode-switch" role="tablist" aria-label="Input Modes">
+                <div class="stab-panel active" data-stab-panel="data">
+                    <div class="mode-switch" role="tablist">
                         <button class="mode-button active" data-mode="manual" type="button">Manual</button>
                         <button class="mode-button" data-mode="canvas" type="button">Canvas</button>
                         <button class="mode-button" data-mode="import" type="button">Import</button>
@@ -63,213 +49,423 @@
 
                     <div class="mode-panel active" data-mode-panel="manual">
                         <label class="field">
-                            <span>Points</span>
-                            <textarea id="manualPoints" rows="7" placeholder="One point per line&#10;12 14&#10;18 20&#10;25 7"></textarea>
+                            <span class="flabel">Points</span>
+                            <textarea id="manualPoints" rows="6" placeholder="x y&#10;12 14&#10;18 20"></textarea>
                         </label>
-
                         <label class="field">
-                            <span>Centroids</span>
-                            <textarea id="manualCentroids" rows="5" placeholder="One centroid per line&#10;10 10&#10;22 9&#10;17 21"></textarea>
+                            <span class="flabel">Centroids</span>
+                            <textarea id="manualCentroids" rows="4" placeholder="x y&#10;10 10&#10;22 9"></textarea>
                         </label>
-
-                        <div class="inline-actions">
-                            <button id="applyManualBtn" class="button button-primary" type="button">Apply Typed Data</button>
-                            <button id="mirrorSceneBtn" class="button button-secondary" type="button">Mirror Current Scene</button>
+                        <div class="btn-row">
+                            <button id="applyManualBtn" class="btn btn-primary" type="button">Apply</button>
+                            <button id="mirrorSceneBtn" class="btn btn-ghost" type="button">Mirror Scene</button>
                         </div>
                     </div>
 
                     <div class="mode-panel" data-mode-panel="canvas">
                         <div class="field">
-                            <span>Canvas Tool</span>
+                            <span class="flabel">Tool</span>
                             <div class="tool-switch">
-                                <button class="tool-button active" data-tool="point" type="button">Add Points</button>
-                                <button class="tool-button" data-tool="centroid" type="button">Add Centroids</button>
-                                <button class="tool-button" data-tool="erase" type="button">Erase Nearest</button>
+                                <button class="tool-button active" data-tool="point" type="button">Points</button>
+                                <button class="tool-button" data-tool="centroid" type="button">Centroids</button>
+                                <button class="tool-button" data-tool="erase" type="button">Erase</button>
                             </div>
                         </div>
-
-                        <p class="helper-copy">
-                            Click on the simulation plane to place coordinates. The live cursor value appears on the canvas.
-                        </p>
-
-                        <div class="inline-actions">
-                            <button id="syncCanvasSceneBtn" class="button button-primary" type="button">Use Canvas Scene</button>
-                            <button id="clearCanvasPointsBtn" class="button button-secondary" type="button">Clear Points</button>
-                            <button id="clearCanvasCentroidsBtn" class="button button-secondary" type="button">Clear Centroids</button>
+                        <p class="hint">Click the canvas to place entities. Cursor coordinates are shown live.</p>
+                        <div class="btn-row">
+                            <button id="syncCanvasSceneBtn" class="btn btn-primary" type="button">Use Scene</button>
+                            <button id="clearCanvasPointsBtn" class="btn btn-ghost" type="button">Clear Points</button>
+                            <button id="clearCanvasCentroidsBtn" class="btn btn-ghost" type="button">Clear Centroids</button>
                         </div>
                     </div>
 
                     <div class="mode-panel" data-mode-panel="import">
                         <label class="field">
-                            <span>A4 Input Format</span>
-                            <textarea id="a4Input" rows="10" placeholder="N&#10;x y&#10;x y&#10;...&#10;K&#10;cx cy&#10;cx cy"></textarea>
+                            <span class="flabel">A4 Format</span>
+                            <textarea id="a4Input" rows="9" placeholder="N&#10;x y&#10;...&#10;K&#10;cx cy"></textarea>
                         </label>
-
-                        <label class="field file-field">
-                            <span>Upload Existing Dataset</span>
-                            <input id="a4File" type="file" accept=".txt,text/plain">
+                        <label class="field">
+                            <span class="flabel">Upload .txt</span>
+                            <input id="a4File" type="file" accept=".txt,text/plain" class="file-input">
                         </label>
-
-                        <div class="inline-actions">
-                            <button id="applyA4Btn" class="button button-primary" type="button">Load A4 Format</button>
-                            <button id="loadSampleBtn" class="button button-secondary" type="button">Load input.txt</button>
+                        <div class="btn-row">
+                            <button id="applyA4Btn" class="btn btn-primary" type="button">Load</button>
+                            <button id="loadSampleBtn" class="btn btn-ghost" type="button">input.txt</button>
                         </div>
                     </div>
 
                     <div class="mode-panel" data-mode-panel="generate">
-                        <div class="input-grid">
+                        <div class="gen-grid">
                             <label class="field">
-                                <span>Profile</span>
+                                <span class="flabel">Profile</span>
                                 <select id="genProfile">
                                     <option value="balanced">Balanced</option>
                                     <option value="wide">Wide</option>
-                                    <option value="insane">Insane-ish</option>
+                                    <option value="insane">Insane</option>
                                 </select>
                             </label>
-
                             <label class="field">
-                                <span>Points</span>
+                                <span class="flabel">Points</span>
                                 <input id="genPointCount" type="number" min="1" max="12000" value="300">
                             </label>
-
                             <label class="field">
-                                <span>Centroids</span>
+                                <span class="flabel">Centroids</span>
                                 <input id="genCentroidCount" type="number" min="1" max="16" value="4">
                             </label>
-
                             <label class="field">
-                                <span>Spread</span>
+                                <span class="flabel">Spread</span>
                                 <input id="genSpread" type="number" min="2" max="600" value="18">
                             </label>
-
                             <label class="field">
-                                <span>Noise Ratio</span>
+                                <span class="flabel">Noise</span>
                                 <input id="genNoise" type="number" min="0" max="0.8" step="0.01" value="0.08">
                             </label>
-
                             <label class="field">
-                                <span>World Size</span>
+                                <span class="flabel">World</span>
                                 <input id="genWorldSize" type="number" min="20" max="5000" value="100">
                             </label>
-
                             <label class="field">
-                                <span>Seed</span>
+                                <span class="flabel">Seed</span>
                                 <input id="genSeed" type="number" min="1" max="99999999" value="20260429">
                             </label>
                         </div>
-
-                        <button id="generateSceneBtn" class="button button-primary button-block" type="button">Generate Scene</button>
+                        <button id="generateSceneBtn" class="btn btn-primary btn-full" type="button">Generate</button>
                     </div>
-                </section>
+                </div>
 
-                <section class="panel">
-                    <div class="section-head">
-                        <div>
-                            <p class="section-label">Run Controls</p>
-                            <h2>Animation + Stopping</h2>
-                        </div>
+                <div class="stab-panel" data-stab-panel="run">
+                    <div class="field">
+                        <span class="flabel">Delay - <span id="delayReadout">180</span> ms</span>
+                        <input id="delayRange" type="range" min="20" max="900" step="10" value="180" class="range-input">
                     </div>
+                    <input id="delayInput" type="number" min="20" max="900" step="10" value="180" class="hidden-sync">
 
-                    <div class="slider-row">
-                        <label class="field slider-field">
-                            <span>Animation Delay (ms)</span>
-                            <input id="delayRange" type="range" min="20" max="900" step="10" value="180">
-                        </label>
-                        <label class="field compact-field">
-                            <span>Delay</span>
-                            <input id="delayInput" type="number" min="20" max="900" step="10" value="180">
-                        </label>
-                    </div>
-
-                    <div class="input-grid">
+                    <div class="gen-grid">
                         <label class="field">
-                            <span>Stop Mode</span>
+                            <span class="flabel">Stop Mode</span>
                             <select id="stopMode">
                                 <option value="epsilon">Epsilon</option>
-                                <option value="max">Max Iterations</option>
+                                <option value="max">Max Iter</option>
                             </select>
                         </label>
-
                         <label class="field">
-                            <span>Epsilon</span>
+                            <span class="flabel">Epsilon</span>
                             <input id="epsilonInput" type="number" min="0.000001" max="1000" step="0.0001" value="0.001">
                         </label>
-
                         <label class="field">
-                            <span>Max Iterations</span>
+                            <span class="flabel">Max Iter</span>
                             <input id="maxIterationsInput" type="number" min="1" max="5000" value="25">
                         </label>
-
                         <label class="field">
-                            <span>Move Frames</span>
-                            <input id="frameCountInput" type="number" min="2" max="60" value="12">
+                            <span class="flabel">Frames</span>
+                            <input id="frameCountInput" type="number" min="2" max="60" value="20">
                         </label>
                     </div>
 
-                    <div class="inline-actions">
-                        <button id="startBtn" class="button button-primary" type="button">Start Simulation</button>
-                        <button id="pauseBtn" class="button button-secondary" type="button">Pause</button>
-                        <button id="resetBtn" class="button button-secondary" type="button">Reset Scene</button>
-                        <button id="clearSceneBtn" class="button button-ghost" type="button">Clear All</button>
+                    <div class="sim-btns">
+                        <button id="startBtn" class="btn btn-primary btn-full" type="button">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,1 11,6 2,11"/></svg>
+                            Start
+                        </button>
+                        <button id="pauseBtn" class="btn btn-secondary btn-full" type="button">Pause</button>
+                        <button id="resetBtn" class="btn btn-ghost btn-full" type="button">Reset</button>
+                        <button id="clearSceneBtn" class="btn btn-danger btn-full" type="button">Clear All</button>
                     </div>
-                </section>
-
-                <section class="panel note-panel">
-                    <div class="section-head">
-                        <div>
-                            <p class="section-label">Workflow</p>
-                            <h2>Use Your Existing Files Too</h2>
-                        </div>
-                    </div>
-                    <p class="helper-copy">
-                        Your original `input.txt` can be loaded directly, and any large dataset produced by
-                        `generate_input.cpp` can be uploaded in the same A4 format.
-                    </p>
-                    <p class="helper-copy">
-                        This frontend is static, so it deploys cleanly to Vercel without a build step.
-                    </p>
-                </section>
+                </div>
             </aside>
 
-            <section class="stage-panel">
-                <div class="status-ribbon">
-                    <div class="status-pill">
-                        <span>Points</span>
+            <section class="stage">
+                <div class="stat-bar">
+                    <div class="stat-item">
+                        <span class="stat-label">pts</span>
                         <strong id="statPoints">0</strong>
                     </div>
-                    <div class="status-pill">
-                        <span>Centroids</span>
+                    <div class="stat-item">
+                        <span class="stat-label">centroids</span>
                         <strong id="statCentroids">0</strong>
                     </div>
-                    <div class="status-pill">
-                        <span>Iteration</span>
+                    <div class="stat-sep"></div>
+                    <div class="stat-item">
+                        <span class="stat-label">iter</span>
                         <strong id="statIteration">0</strong>
                     </div>
-                    <div class="status-pill">
-                        <span>Phase</span>
+                    <div class="stat-item stat-phase">
+                        <span class="stat-label">phase</span>
                         <strong id="statPhase">Ready</strong>
                     </div>
-                    <div class="status-pill">
-                        <span>Shift</span>
+                    <div class="stat-item">
+                        <span class="stat-label">shift</span>
                         <strong id="statShift">0.0000</strong>
                     </div>
                 </div>
 
-                <div class="canvas-frame">
+                <div class="canvas-wrap">
                     <canvas id="simCanvas" width="960" height="620" aria-label="K-means simulation canvas"></canvas>
-                    <div class="canvas-caption">
-                        <span id="cursorLabel">Cursor: --</span>
-                        <span id="toolLabel">Tool: Add Points</span>
+                </div>
+
+                <div class="canvas-foot">
+                    <span id="cursorLabel" class="mono-dim">Cursor: --</span>
+                    <span id="toolLabel" class="mono-dim">Tool: Add Points</span>
+                    <div id="dataNote" class="status-note">Sample data loaded.</div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="page" id="page-guide">
+        <div class="content-page">
+            <div class="content-header">
+                <p class="content-eyebrow">Documentation</p>
+                <h1>How to Use</h1>
+                <p class="content-lead">Four ways to load data, one simulation engine.</p>
+            </div>
+
+            <div class="guide-grid">
+                <div class="guide-card">
+                    <div class="guide-icon" style="--c:#8b5cf6">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 6h12M4 10h8M4 14h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </div>
+                    <h3>Manual Entry</h3>
+                    <p>Type coordinates directly into the Points and Centroids text boxes. One coordinate pair per line in <code>x y</code> format. Hit <strong>Apply</strong> to load into the scene.</p>
+                </div>
+
+                <div class="guide-card">
+                    <div class="guide-icon" style="--c:#22d3ee">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2" fill="currentColor"/><path d="M10 4v2M10 14v2M4 10h2M14 10h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </div>
+                    <h3>Canvas Click</h3>
+                    <p>Switch to the Canvas tab and choose a tool - <strong>Points</strong>, <strong>Centroids</strong>, or <strong>Erase</strong>. Click anywhere on the simulation plane to place or remove entities.</p>
+                </div>
+
+                <div class="guide-card">
+                    <div class="guide-icon" style="--c:#34d399">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4h12v2H4zM4 9h8v2H4zM4 14h5v2H4z" fill="currentColor" opacity=".7"/></svg>
+                    </div>
+                    <h3>A4 Import</h3>
+                    <p>Paste or upload a dataset in the original A4 format: point count N, then N coordinate pairs, then centroid count K, then K centroid pairs. Compatible with any file from <code>generate_input.cpp</code>.</p>
+                    <div class="code-block">N<br>x y<br>x y<br>...<br>K<br>cx cy</div>
+                </div>
+
+                <div class="guide-card">
+                    <div class="guide-icon" style="--c:#f472b6">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3l2.5 5 5.5.8-4 3.9.95 5.5L10 15.8l-4.95 2.4.95-5.5L2 8.8l5.5-.8L10 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3>Generate</h3>
+                    <p>Synthesize a random clustered dataset. Choose a profile (Balanced, Wide, or Insane), set point and centroid counts, adjust spread and noise, then hit <strong>Generate</strong>.</p>
+                </div>
+            </div>
+
+            <div class="guide-section">
+                <h2>Running the Simulation</h2>
+                <div class="steps">
+                    <div class="step"><span class="step-num">1</span><p>Load your scene using any of the four input methods above.</p></div>
+                    <div class="step"><span class="step-num">2</span><p>Switch to the <strong>Run</strong> tab. Set your stop mode - <em>Epsilon</em> halts when centroid movement falls below a threshold; <em>Max Iterations</em> halts after a fixed count.</p></div>
+                    <div class="step"><span class="step-num">3</span><p>Adjust <strong>Delay</strong> (animation speed) and <strong>Frames</strong> (smoothness of centroid movement).</p></div>
+                    <div class="step"><span class="step-num">4</span><p>Press <strong>Start</strong>. Watch points color by cluster and centroids migrate each iteration.</p></div>
+                    <div class="step"><span class="step-num">5</span><p>Use <strong>Pause</strong> to freeze mid-simulation, <strong>Reset</strong> to revert to the loaded scene, or <strong>Clear All</strong> to start fresh.</p></div>
+                </div>
+            </div>
+
+            <div class="guide-section">
+                <h2>Tips</h2>
+                <div class="tip-list">
+                    <div class="tip"><span class="tip-dot" style="--c:#8b5cf6"></span>The <strong>Mirror Scene</strong> button copies the current canvas state back into the Manual text boxes - useful for saving mid-simulation positions.</div>
+                    <div class="tip"><span class="tip-dot" style="--c:#22d3ee"></span>The <strong>Shift</strong> stat shows the sum of squared centroid displacements per iteration. It reaches zero at full convergence.</div>
+                    <div class="tip"><span class="tip-dot" style="--c:#34d399"></span>The Voronoi-shaded background updates live - each region shows which centroid owns that area of the plane.</div>
+                    <div class="tip"><span class="tip-dot" style="--c:#f472b6"></span>Set the seed in Generate mode to reproduce the same dataset exactly across runs.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="page-about">
+        <div class="content-page">
+            <div class="content-header">
+                <p class="content-eyebrow">Background</p>
+                <h1>K-Means &amp; Lloyd's Algorithm</h1>
+                <p class="content-lead">The math behind the animation.</p>
+            </div>
+
+            <div class="about-cols">
+                <div class="about-main">
+                    <div class="about-block">
+                        <h2>What is K-Means?</h2>
+                        <p>K-means clustering partitions a set of points into <em>K</em> groups (clusters) such that each point belongs to the cluster with the nearest centroid, and the sum of squared distances from each point to its assigned centroid (inertia) is minimized.</p>
+                        <p>It's one of the most widely used unsupervised learning algorithms - efficient, interpretable, and easy to implement while still being provably NP-hard in general.</p>
+                    </div>
+
+                    <div class="about-block">
+                        <h2>Lloyd-Forgy Method</h2>
+                        <p>This app implements the Lloyd-Forgy algorithm, the standard iterative refinement approach to k-means:</p>
+                        <div class="algo-steps">
+                            <div class="algo-step">
+                                <span class="algo-num">E-step</span>
+                                <div><strong>Assign</strong> - each point is assigned to the nearest centroid by Euclidean distance.</div>
+                            </div>
+                            <div class="algo-step">
+                                <span class="algo-num">M-step</span>
+                                <div><strong>Update</strong> - each centroid moves to the mean position of all points assigned to it.</div>
+                            </div>
+                            <div class="algo-step">
+                                <span class="algo-num">Check</span>
+                                <div><strong>Converge</strong> - repeat until centroid shift falls below epsilon, or max iterations is reached.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="about-block">
+                        <h2>Convergence &amp; Limitations</h2>
+                        <p>Lloyd's algorithm always converges - inertia is monotonically non-increasing - but it converges to a <em>local</em> minimum, not necessarily the global one. The final clustering depends on initialization.</p>
+                        <p>Common failure modes: empty clusters (handled here by reinitializing from a random existing point), sensitivity to outliers, and poor performance when clusters are non-spherical or have very different densities.</p>
                     </div>
                 </div>
 
-                <div class="footer-note" id="dataNote">
-                    Sample data loaded. You can start immediately or rebuild the scene from any input mode.
+                <div class="about-side">
+                    <div class="about-card">
+                        <div class="about-card-label">Complexity</div>
+                        <div class="about-card-val mono">O(n * k * i)</div>
+                        <div class="about-card-sub">n points, k centroids, i iterations</div>
+                    </div>
+                    <div class="about-card">
+                        <div class="about-card-label">Stopping Criterion</div>
+                        <div class="about-card-val mono">sum ||c_i' - c_i||^2 &lt; epsilon</div>
+                        <div class="about-card-sub">Sum of squared centroid displacements</div>
+                    </div>
+                    <div class="about-card">
+                        <div class="about-card-label">Origin</div>
+                        <div class="about-card-val">Stuart Lloyd, 1957</div>
+                        <div class="about-card-sub">Published in 1982; independently by Forgy (1965)</div>
+                    </div>
+                    <div class="about-card">
+                        <div class="about-card-label">This App</div>
+                        <div class="about-card-val">Web port of C++ A4</div>
+                        <div class="about-card-sub">Static; no build step; Vercel-ready</div>
+                    </div>
                 </div>
-            </section>
-        </main>
+            </div>
+        </div>
     </div>
 
+    <div class="page" id="page-feedback">
+        <div class="content-page">
+            <div class="content-header">
+                <p class="content-eyebrow">Get In Touch</p>
+                <h1>Feedback</h1>
+                <p class="content-lead">Report a bug, suggest a feature, or just say hi.</p>
+            </div>
+
+            <div class="fb-layout">
+                <form class="fb-form" id="feedbackForm">
+                    <label class="field">
+                        <span class="flabel">Name</span>
+                        <input type="text" id="fbName" placeholder="Your name" autocomplete="name">
+                    </label>
+                    <label class="field">
+                        <span class="flabel">Email</span>
+                        <input type="email" id="fbEmail" placeholder="you@example.com" autocomplete="email">
+                    </label>
+                    <label class="field">
+                        <span class="flabel">Category</span>
+                        <select id="fbCategory">
+                            <option value="bug">Bug Report</option>
+                            <option value="feature">Feature Request</option>
+                            <option value="ux">UI / UX</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span class="flabel">Message</span>
+                        <textarea id="fbMessage" rows="6" placeholder="Describe the issue or suggestion in detail..."></textarea>
+                    </label>
+                    <button type="submit" class="btn btn-primary btn-full fb-submit">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Send Feedback
+                    </button>
+                    <div class="fb-confirm" id="fbConfirm">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="#34d399" stroke-width="1.5"/><path d="M5.5 9l2.5 2.5 4.5-4.5" stroke="#34d399" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Your email app has been opened with a drafted message.
+                    </div>
+                </form>
+
+                <div class="fb-aside">
+                    <div class="fb-card">
+                        <div class="fb-card-icon" style="color:#8b5cf6">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v5M10 13v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        </div>
+                        <h4>Bug Reports</h4>
+                        <p>Include the input mode you were using, what you expected, and what happened instead.</p>
+                    </div>
+                    <div class="fb-card">
+                        <div class="fb-card-icon" style="color:#22d3ee">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3l2 5.5H17l-4 3 1.5 5.5L10 14l-4.5 3L7 11 3 8.5h5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                        </div>
+                        <h4>Feature Requests</h4>
+                        <p>What would make this tool more useful for your workflow or coursework?</p>
+                    </div>
+                    <div class="fb-card">
+                        <div class="fb-card-icon" style="color:#34d399">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 10c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7-7-3.13-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <h4>Direct Email</h4>
+                        <p>The feedback form opens a message draft addressed to <a href="mailto:hassanawan789@outlook.com">hassanawan789@outlook.com</a>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll(".nav-tab").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".page").forEach((page) => page.classList.remove("active"));
+                document.querySelectorAll(".nav-tab").forEach((tab) => tab.classList.remove("active"));
+                document.getElementById("page-" + btn.dataset.page).classList.add("active");
+                btn.classList.add("active");
+            });
+        });
+
+        document.querySelectorAll(".stab").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".stab").forEach((tab) => tab.classList.remove("active"));
+                document.querySelectorAll(".stab-panel").forEach((panel) => panel.classList.remove("active"));
+                btn.classList.add("active");
+                document.querySelector('[data-stab-panel="' + btn.dataset.stab + '"]').classList.add("active");
+            });
+        });
+
+        const delayRange = document.getElementById("delayRange");
+        const delayInput = document.getElementById("delayInput");
+        const delayReadout = document.getElementById("delayReadout");
+
+        delayRange.addEventListener("input", () => {
+            delayInput.value = delayRange.value;
+            delayReadout.textContent = delayRange.value;
+        });
+
+        document.getElementById("feedbackForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const name = document.getElementById("fbName").value.trim();
+            const email = document.getElementById("fbEmail").value.trim();
+            const category = document.getElementById("fbCategory").value;
+            const message = document.getElementById("fbMessage").value.trim();
+
+            if (!message) {
+                return;
+            }
+
+            const subject = encodeURIComponent("[K-Means Simulator] " + category + (name ? " from " + name : ""));
+            const body = encodeURIComponent(
+                (name ? "Name: " + name + "\n" : "") +
+                (email ? "Email: " + email + "\n" : "") +
+                "\n" +
+                message
+            );
+
+            window.location.href = "mailto:hassanawan789@outlook.com?subject=" + subject + "&body=" + body;
+            document.getElementById("fbConfirm").style.display = "flex";
+            this.querySelector(".fb-submit").disabled = true;
+        });
+    </script>
     <script src="app.js"></script>
 </body>
 </html>

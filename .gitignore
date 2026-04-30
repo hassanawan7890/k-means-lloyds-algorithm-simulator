@@ -1,5 +1,6 @@
 *
 !.gitignore
+!README.md
 !kmeans-app/
 !kmeans-app/**
 kmeans-app/node_modules/

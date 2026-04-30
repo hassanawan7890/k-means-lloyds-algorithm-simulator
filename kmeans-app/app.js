@@ -221,26 +221,41 @@ function parseA4Input(text) {
     return { points, centroids };
 }
 
+function hslToRgb(h, s, l) {
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r, g, b;
+    if (h < 60)       { r = c; g = x; b = 0; }
+    else if (h < 120) { r = x; g = c; b = 0; }
+    else if (h < 180) { r = 0; g = c; b = x; }
+    else if (h < 240) { r = 0; g = x; b = c; }
+    else if (h < 300) { r = x; g = 0; b = c; }
+    else              { r = c; g = 0; b = x; }
+    return {
+        r: Math.round((r + m) * 255),
+        g: Math.round((g + m) * 255),
+        b: Math.round((b + m) * 255)
+    };
+}
+
 function generateColors(count) {
     const random = new SeededRandom(COLOR_SEED);
     const colors = [];
-
     for (let i = 0; i < count; i += 1) {
-        colors.push({
-            r: Math.floor(random.range(0, 255)),
-            g: Math.floor(random.range(0, 255)),
-            b: Math.floor(random.range(0, 255))
-        });
+        const hue = ((i * 137.508) + random.range(-10, 10) + 210) % 360;
+        const sat = 0.70 + random.range(0, 0.20);
+        const light = 0.60 + random.range(0, 0.12);
+        colors.push(hslToRgb(hue, sat, light));
     }
-
     return colors;
 }
 
 function shadeColor(color) {
     return {
-        r: Math.round(color.r * 0.35 + 255 * 0.65),
-        g: Math.round(color.g * 0.35 + 255 * 0.65),
-        b: Math.round(color.b * 0.35 + 255 * 0.65)
+        r: Math.round(color.r * 0.24 + 7),
+        g: Math.round(color.g * 0.24 + 7),
+        b: Math.round(color.b * 0.24 + 7)
     };
 }
 
@@ -390,7 +405,7 @@ function screenToWorld(clientX, clientY) {
 
 function drawBackground(bounds) {
     ctx.clearRect(0, 0, els.simCanvas.width, els.simCanvas.height);
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#0d0f1e";
     ctx.fillRect(0, 0, els.simCanvas.width, els.simCanvas.height);
 
     if (!state.centroids.length) {
@@ -443,7 +458,7 @@ function drawBackground(bounds) {
 function drawGrid(bounds) {
     const steps = 10;
     ctx.save();
-    ctx.strokeStyle = "rgba(20, 36, 46, 0.07)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
     ctx.lineWidth = 1;
 
     for (let i = 1; i < steps; i += 1) {
@@ -464,7 +479,7 @@ function drawGrid(bounds) {
 
     if (bounds.minX <= 0 && bounds.maxX >= 0) {
         const axisX = worldToScreen({ x: 0, y: 0 }, bounds).x;
-        ctx.strokeStyle = "rgba(20, 36, 46, 0.3)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(axisX, 0);
@@ -474,7 +489,7 @@ function drawGrid(bounds) {
 
     if (bounds.minY <= 0 && bounds.maxY >= 0) {
         const axisY = worldToScreen({ x: 0, y: 0 }, bounds).y;
-        ctx.strokeStyle = "rgba(20, 36, 46, 0.3)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(0, axisY);
@@ -482,8 +497,8 @@ function drawGrid(bounds) {
         ctx.stroke();
     }
 
-    ctx.fillStyle = "rgba(20, 36, 46, 0.5)";
-    ctx.font = '12px "IBM Plex Mono"';
+    ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.font = '12px "JetBrains Mono"';
     ctx.fillText(`x: ${trimNumber(bounds.minX)} to ${trimNumber(bounds.maxX)}`, 16, els.simCanvas.height - 16);
     ctx.fillText(`y: ${trimNumber(bounds.minY)} to ${trimNumber(bounds.maxY)}`, 16, els.simCanvas.height - 32);
     ctx.restore();
@@ -501,8 +516,8 @@ function drawPoints(bounds) {
         ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
         ctx.fill();
 
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 0.7;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
         ctx.stroke();
     }
 }
@@ -511,47 +526,58 @@ function drawCentroids(bounds) {
     for (let i = 0; i < state.centroids.length; i += 1) {
         const screen = worldToScreen(state.centroids[i], bounds);
         const color = state.colors[i];
+        const rgb = `rgb(${color.r}, ${color.g}, ${color.b})`;
 
+        ctx.save();
+
+        // Outer glow
+        ctx.shadowColor = rgb;
+        ctx.shadowBlur = 24;
         ctx.beginPath();
-        ctx.arc(screen.x, screen.y, 12, 0, Math.PI * 2);
-        ctx.fillStyle = "#000000";
+        ctx.arc(screen.x, screen.y, 14, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
         ctx.fill();
 
+        // Remove glow for inner fill
+        ctx.shadowBlur = 0;
         ctx.beginPath();
-        ctx.arc(screen.x, screen.y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+        ctx.arc(screen.x, screen.y, 9, 0, Math.PI * 2);
+        ctx.fillStyle = rgb;
         ctx.fill();
+
+        ctx.restore();
     }
 }
 
 function drawOverlays(bounds) {
     ctx.save();
-    ctx.fillStyle = "#111111";
-    ctx.font = '700 28px "Space Grotesk"';
-    ctx.fillText(`Iteration: ${state.iteration}`, 22, 40);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.88)";
+    ctx.font = '700 24px "Inter"';
+    ctx.fillText(`Iteration: ${state.iteration}`, 22, 38);
 
-    ctx.font = '500 15px "IBM Plex Mono"';
-    ctx.fillText(`Phase: ${state.phase}`, 22, 66);
-    ctx.fillText(`Points: ${state.points.length} | Centroids: ${state.centroids.length}`, 22, 88);
+    ctx.font = '500 13px "JetBrains Mono"';
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.fillText(`Phase: ${state.phase}`, 22, 60);
+    ctx.fillText(`Points: ${state.points.length}  |  Centroids: ${state.centroids.length}`, 22, 80);
     ctx.restore();
 
     if (state.cursorWorld) {
-        const cursorText = `(${trimNumber(state.cursorWorld.x)}, ${trimNumber(state.cursorWorld.y)})`;
-        ctx.font = '500 14px "IBM Plex Mono"';
+        const cursorText = `${trimNumber(state.cursorWorld.x)}, ${trimNumber(state.cursorWorld.y)}`;
+        ctx.font = '500 13px "JetBrains Mono"';
         const metrics = ctx.measureText(cursorText);
-        const boxWidth = metrics.width + 24;
+        const boxWidth = metrics.width + 28;
         const boxX = els.simCanvas.width - boxWidth - 18;
         const boxY = 18;
 
-        ctx.fillStyle = "rgba(255, 255, 255, 0.86)";
-        ctx.strokeStyle = "rgba(20, 36, 46, 0.16)";
+        ctx.fillStyle = "rgba(13, 15, 30, 0.88)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
         ctx.lineWidth = 1;
-        roundRect(ctx, boxX, boxY, boxWidth, 34, 16);
+        roundRect(ctx, boxX, boxY, boxWidth, 34, 10);
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = "#14242e";
-        ctx.fillText(cursorText, boxX + 12, boxY + 22);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.fillText(cursorText, boxX + 14, boxY + 22);
     }
 }
 
@@ -939,7 +965,10 @@ async function waitForPlayback(ms) {
 
 async function animateCentroidMove(fromCentroids, toCentroids, config) {
     for (let frame = 1; frame <= config.frames; frame += 1) {
-        const t = frame / config.frames;
+        const raw = frame / config.frames;
+        const t = raw < 0.5
+            ? 4 * raw * raw * raw
+            : 1 - Math.pow(-2 * raw + 2, 3) / 2;
         state.centroids = fromCentroids.map((centroid, index) => ({
             x: centroid.x * (1 - t) + toCentroids[index].x * t,
             y: centroid.y * (1 - t) + toCentroids[index].y * t
@@ -1041,6 +1070,25 @@ function clearEverything() {
     showNote("Scene cleared. Add points and centroids to begin again.", "success");
 }
 
+function resizeCanvas() {
+    const wrap = els.simCanvas.parentElement;
+    const pad = 12;
+    const availW = wrap.clientWidth - pad * 2;
+    const availH = wrap.clientHeight - pad * 2;
+    if (availW <= 0 || availH <= 0) { return; }
+    const ratio = els.simCanvas.width / els.simCanvas.height;
+    let w, h;
+    if (availW / ratio <= availH) {
+        w = availW;
+        h = Math.round(availW / ratio);
+    } else {
+        h = availH;
+        w = Math.round(availH * ratio);
+    }
+    els.simCanvas.style.width = w + "px";
+    els.simCanvas.style.height = h + "px";
+}
+
 function wireEvents() {
     els.applyManualBtn.addEventListener("click", applyManualData);
     els.mirrorSceneBtn.addEventListener("click", mirrorCurrentScene);
@@ -1115,6 +1163,7 @@ function wireEvents() {
         render();
     });
     els.simCanvas.addEventListener("click", handleCanvasInteraction);
+    window.addEventListener("resize", () => { resizeCanvas(); render(); });
 }
 
 function initialize() {
@@ -1133,3 +1182,4 @@ function initialize() {
 
 wireEvents();
 initialize();
+resizeCanvas();
