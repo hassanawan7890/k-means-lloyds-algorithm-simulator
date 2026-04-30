@@ -6,7 +6,7 @@ Live demo: https://kmeans-simulator.vercel.app
 
 ## Overview
 
-This project turns a C++ k-means assignment into a polished browser-based simulator. It lets users build datasets, watch centroid movement frame by frame, and explore how clustering changes across iterations.
+KMeans Simulator is an interactive visualization tool for exploring how Lloyd-Forgy k-means clustering behaves across different datasets, centroid placements, and stopping conditions. It lets users build scenes manually, import coordinate sets, generate synthetic data, and watch assignments and centroid movement update step by step.
 
 The app is designed for:
 
@@ -15,17 +15,26 @@ The app is designed for:
 - testing different centroid placements and dataset shapes
 - sharing the simulator online without requiring a local build
 
+## Preview
+
+<p align="center">
+  <img src="./kmeans-app/assets/readme/simulator-desktop.png" alt="Desktop view of the KMeans Simulator canvas and controls" width="900">
+</p>
+
+<p align="center">
+  <img src="./kmeans-app/assets/readme/simulator-mobile.png" alt="Mobile view of the KMeans Simulator interface" width="320">
+</p>
+
 ## Features
 
 - manual entry of point and centroid coordinates
 - click-to-place editing directly on the canvas
-- import support for the original A4 text input format
+- structured text import for point and centroid datasets
 - random dataset generation with seed-based reproducibility
 - adjustable animation delay and centroid interpolation frames
 - epsilon-based stopping or max-iteration stopping
 - mobile-friendly simulator workspace with touch canvas support
 - guide and theory pages built into the app
-- feedback page that opens an email draft to `hassanawan789@outlook.com`
 
 ## How It Works
 
@@ -47,21 +56,8 @@ The visualization also shows:
 
 - `Manual`: type one `x y` coordinate pair per line
 - `Canvas`: click to add points, add centroids, or erase the nearest item
-- `Import`: paste or upload the original assignment dataset format
+- `Import`: paste or upload a compatible `N ... K` coordinate dataset
 - `Generate`: create a random scene using profile, spread, noise, world size, and seed controls
-
-## Local Development
-
-From the repository root:
-
-```powershell
-cd C:\Users\Hassan\Downloads\A4\kmeans-app
-python -m http.server 4173 --bind 127.0.0.1
-```
-
-Then open:
-
-`http://127.0.0.1:4173/`
 
 ## Project Structure
 
@@ -72,20 +68,3 @@ The deployable app lives in [kmeans-app](./kmeans-app).
 - [kmeans-app/app.js](./kmeans-app/app.js) - simulator logic, animation, parsing, and interaction
 - [kmeans-app/input.txt](./kmeans-app/input.txt) - sample dataset
 - [kmeans-app/vercel.json](./kmeans-app/vercel.json) - Vercel configuration
-
-## Deployment
-
-This repository is connected to Vercel.
-
-- production site: `https://kmeans-simulator.vercel.app`
-- GitHub repository: `https://github.com/hassanawan7890/k-means-lloyds-algorithm-simulator`
-- Vercel project root: `kmeans-app`
-- production branch: `main`
-
-Any new push to `main` should trigger a new Vercel deployment automatically.
-
-## Feedback
-
-Questions, bug reports, and suggestions:
-
-`hassanawan789@outlook.com`
