@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Means Motion Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="ambient ambient-a"></div>
+        <div class="ambient ambient-b"></div>
+        <div class="ambient ambient-c"></div>
+
+        <header class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">Interactive Lloyd-Forgy Playground</p>
+                <h1>K-Means Motion Lab</h1>
+                <p class="hero-text">
+                    Build a dataset by typing coordinates, clicking directly on the plane,
+                    importing your original A4 input format, or generating a fresh scene.
+                    Then watch the clusters settle with the same white-canvas visual language
+                    and seeded color feel from your C++ version.
+                </p>
+            </div>
+
+            <div class="hero-meta">
+                <div class="meta-chip">
+                    <span>Input Modes</span>
+                    <strong>Manual, click, import, generate</strong>
+                </div>
+                <div class="meta-chip">
+                    <span>Simulation</span>
+                    <strong>Animated centroid movement</strong>
+                </div>
+                <div class="meta-chip">
+                    <span>Deploy</span>
+                    <strong>Static and Vercel-ready</strong>
+                </div>
+            </div>
+        </header>
+
+        <main class="workspace">
+            <aside class="control-rail">
+                <section class="panel">
+                    <div class="section-head">
+                        <div>
+                            <p class="section-label">Scene Builder</p>
+                            <h2>Choose Your Input Flow</h2>
+                        </div>
+                        <p class="section-note">Everything you load here becomes the next simulation scene.</p>
+                    </div>
+
+                    <div class="mode-switch" role="tablist" aria-label="Input Modes">
+                        <button class="mode-button active" data-mode="manual" type="button">Manual</button>
+                        <button class="mode-button" data-mode="canvas" type="button">Canvas</button>
+                        <button class="mode-button" data-mode="import" type="button">Import</button>
+                        <button class="mode-button" data-mode="generate" type="button">Generate</button>
+                    </div>
+
+                    <div class="mode-panel active" data-mode-panel="manual">
+                        <label class="field">
+                            <span>Points</span>
+                            <textarea id="manualPoints" rows="7" placeholder="One point per line&#10;12 14&#10;18 20&#10;25 7"></textarea>
+                        </label>
+
+                        <label class="field">
+                            <span>Centroids</span>
+                            <textarea id="manualCentroids" rows="5" placeholder="One centroid per line&#10;10 10&#10;22 9&#10;17 21"></textarea>
+                        </label>
+
+                        <div class="inline-actions">
+                            <button id="applyManualBtn" class="button button-primary" type="button">Apply Typed Data</button>
+                            <button id="mirrorSceneBtn" class="button button-secondary" type="button">Mirror Current Scene</button>
+                        </div>
+                    </div>
+
+                    <div class="mode-panel" data-mode-panel="canvas">
+                        <div class="field">
+                            <span>Canvas Tool</span>
+                            <div class="tool-switch">
+                                <button class="tool-button active" data-tool="point" type="button">Add Points</button>
+                                <button class="tool-button" data-tool="centroid" type="button">Add Centroids</button>
+                                <button class="tool-button" data-tool="erase" type="button">Erase Nearest</button>
+                            </div>
+                        </div>
+
+                        <p class="helper-copy">
+                            Click on the simulation plane to place coordinates. The live cursor value appears on the canvas.
+                        </p>
+
+                        <div class="inline-actions">
+                            <button id="syncCanvasSceneBtn" class="button button-primary" type="button">Use Canvas Scene</button>
+                            <button id="clearCanvasPointsBtn" class="button button-secondary" type="button">Clear Points</button>
+                            <button id="clearCanvasCentroidsBtn" class="button button-secondary" type="button">Clear Centroids</button>
+                        </div>
+                    </div>
+
+                    <div class="mode-panel" data-mode-panel="import">
+                        <label class="field">
+                            <span>A4 Input Format</span>
+                            <textarea id="a4Input" rows="10" placeholder="N&#10;x y&#10;x y&#10;...&#10;K&#10;cx cy&#10;cx cy"></textarea>
+                        </label>
+
+                        <label class="field file-field">
+                            <span>Upload Existing Dataset</span>
+                            <input id="a4File" type="file" accept=".txt,text/plain">
+                        </label>
+
+                        <div class="inline-actions">
+                            <button id="applyA4Btn" class="button button-primary" type="button">Load A4 Format</button>
+                            <button id="loadSampleBtn" class="button button-secondary" type="button">Load input.txt</button>
+                        </div>
+                    </div>
+
+                    <div class="mode-panel" data-mode-panel="generate">
+                        <div class="input-grid">
+                            <label class="field">
+                                <span>Profile</span>
+                                <select id="genProfile">
+                                    <option value="balanced">Balanced</option>
+                                    <option value="wide">Wide</option>
+                                    <option value="insane">Insane-ish</option>
+                                </select>
+                            </label>
+
+                            <label class="field">
+                                <span>Points</span>
+                                <input id="genPointCount" type="number" min="1" max="12000" value="300">
+                            </label>
+
+                            <label class="field">
+                                <span>Centroids</span>
+                                <input id="genCentroidCount" type="number" min="1" max="16" value="4">
+                            </label>
+
+                            <label class="field">
+                                <span>Spread</span>
+                                <input id="genSpread" type="number" min="2" max="600" value="18">
+                            </label>
+
+                            <label class="field">
+                                <span>Noise Ratio</span>
+                                <input id="genNoise" type="number" min="0" max="0.8" step="0.01" value="0.08">
+                            </label>
+
+                            <label class="field">
+                                <span>World Size</span>
+                                <input id="genWorldSize" type="number" min="20" max="5000" value="100">
+                            </label>
+
+                            <label class="field">
+                                <span>Seed</span>
+                                <input id="genSeed" type="number" min="1" max="99999999" value="20260429">
+                            </label>
+                        </div>
+
+                        <button id="generateSceneBtn" class="button button-primary button-block" type="button">Generate Scene</button>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="section-head">
+                        <div>
+                            <p class="section-label">Run Controls</p>
+                            <h2>Animation + Stopping</h2>
+                        </div>
+                    </div>
+
+                    <div class="slider-row">
+                        <label class="field slider-field">
+                            <span>Animation Delay (ms)</span>
+                            <input id="delayRange" type="range" min="20" max="900" step="10" value="180">
+                        </label>
+                        <label class="field compact-field">
+                            <span>Delay</span>
+                            <input id="delayInput" type="number" min="20" max="900" step="10" value="180">
+                        </label>
+                    </div>
+
+                    <div class="input-grid">
+                        <label class="field">
+                            <span>Stop Mode</span>
+                            <select id="stopMode">
+                                <option value="epsilon">Epsilon</option>
+                                <option value="max">Max Iterations</option>
+                            </select>
+                        </label>
+
+                        <label class="field">
+                            <span>Epsilon</span>
+                            <input id="epsilonInput" type="number" min="0.000001" max="1000" step="0.0001" value="0.001">
+                        </label>
+
+                        <label class="field">
+                            <span>Max Iterations</span>
+                            <input id="maxIterationsInput" type="number" min="1" max="5000" value="25">
+                        </label>
+
+                        <label class="field">
+                            <span>Move Frames</span>
+                            <input id="frameCountInput" type="number" min="2" max="60" value="12">
+                        </label>
+                    </div>
+
+                    <div class="inline-actions">
+                        <button id="startBtn" class="button button-primary" type="button">Start Simulation</button>
+                        <button id="pauseBtn" class="button button-secondary" type="button">Pause</button>
+                        <button id="resetBtn" class="button button-secondary" type="button">Reset Scene</button>
+                        <button id="clearSceneBtn" class="button button-ghost" type="button">Clear All</button>
+                    </div>
+                </section>
+
+                <section class="panel note-panel">
+                    <div class="section-head">
+                        <div>
+                            <p class="section-label">Workflow</p>
+                            <h2>Use Your Existing Files Too</h2>
+                        </div>
+                    </div>
+                    <p class="helper-copy">
+                        Your original `input.txt` can be loaded directly, and any large dataset produced by
+                        `generate_input.cpp` can be uploaded in the same A4 format.
+                    </p>
+                    <p class="helper-copy">
+                        This frontend is static, so it deploys cleanly to Vercel without a build step.
+                    </p>
+                </section>
+            </aside>
+
+            <section class="stage-panel">
+                <div class="status-ribbon">
+                    <div class="status-pill">
+                        <span>Points</span>
+                        <strong id="statPoints">0</strong>
+                    </div>
+                    <div class="status-pill">
+                        <span>Centroids</span>
+                        <strong id="statCentroids">0</strong>
+                    </div>
+                    <div class="status-pill">
+                        <span>Iteration</span>
+                        <strong id="statIteration">0</strong>
+                    </div>
+                    <div class="status-pill">
+                        <span>Phase</span>
+                        <strong id="statPhase">Ready</strong>
+                    </div>
+                    <div class="status-pill">
+                        <span>Shift</span>
+                        <strong id="statShift">0.0000</strong>
+                    </div>
+                </div>
+
+                <div class="canvas-frame">
+                    <canvas id="simCanvas" width="960" height="620" aria-label="K-means simulation canvas"></canvas>
+                    <div class="canvas-caption">
+                        <span id="cursorLabel">Cursor: --</span>
+                        <span id="toolLabel">Tool: Add Points</span>
+                    </div>
+                </div>
+
+                <div class="footer-note" id="dataNote">
+                    Sample data loaded. You can start immediately or rebuild the scene from any input mode.
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
