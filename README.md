@@ -2,6 +2,8 @@
 
 Interactive static web app for exploring k-means clustering and the Lloyd-Forgy algorithm in the browser.
 
+Live demo: https://k-means-lloyds-algorithm-simulator.vercel.app
+
 ## Highlights
 
 - build datasets manually, by canvas clicks, by A4-format import, or by random generation

@@ -2,6 +2,8 @@
 
 Interactive browser-based simulator for k-means clustering and the Lloyd-Forgy update cycle.
 
+Live demo: https://k-means-lloyds-algorithm-simulator.vercel.app
+
 ## Run locally
 
 ```powershell
