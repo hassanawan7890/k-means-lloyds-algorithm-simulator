@@ -69,6 +69,7 @@ const state = {
     running: false,
     paused: false,
     abortRequested: false,
+    mobileView: "stage",
     mode: "manual",
     clickTool: "point",
     cursorWorld: null
@@ -113,9 +114,11 @@ const els = {
     cursorLabel: document.getElementById("cursorLabel"),
     toolLabel: document.getElementById("toolLabel"),
     simCanvas: document.getElementById("simCanvas"),
+    simLayout: document.querySelector(".sim-layout"),
     modeButtons: [...document.querySelectorAll(".mode-button")],
     modePanels: [...document.querySelectorAll(".mode-panel")],
-    toolButtons: [...document.querySelectorAll(".tool-button")]
+    toolButtons: [...document.querySelectorAll(".tool-button")],
+    mobileViewButtons: [...document.querySelectorAll(".mobile-workspace-button")]
 };
 
 const ctx = els.simCanvas.getContext("2d");
@@ -624,6 +627,35 @@ function toolLabel(tool) {
     return "Add Points";
 }
 
+function isCompactLayout() {
+    return window.matchMedia("(max-width: 960px)").matches;
+}
+
+function setMobileView(view) {
+    state.mobileView = view;
+
+    if (els.simLayout) {
+        els.simLayout.dataset.mobileView = view;
+    }
+
+    for (const button of els.mobileViewButtons) {
+        const isActive = button.dataset.mobileView === view;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    }
+
+    window.requestAnimationFrame(() => {
+        resizeCanvas();
+        render();
+    });
+}
+
+function focusStageOnMobile() {
+    if (isCompactLayout()) {
+        setMobileView("stage");
+    }
+}
+
 function syncTextareasFromBase() {
     els.manualPoints.value = formatCoordinateList(state.basePoints);
     els.manualCentroids.value = formatCoordinateList(state.baseCentroids);
@@ -635,6 +667,7 @@ function setBaseScene(points, centroids, noteMessage) {
     state.colors = generateColors(state.baseCentroids.length);
     resetToBase(false);
     syncTextareasFromBase();
+    focusStageOnMobile();
 
     if (noteMessage) {
         showNote(noteMessage, "success");
@@ -860,7 +893,8 @@ function handleCanvasInteraction(event) {
         return;
     }
 
-    const worldPoint = screenToWorld(event.clientX, event.clientY);
+    const position = getEventClientPosition(event);
+    const worldPoint = screenToWorld(position.clientX, position.clientY);
     state.cursorWorld = worldPoint;
 
     if (state.clickTool === "point") {
@@ -918,6 +952,27 @@ function syncControlState() {
     els.startBtn.disabled = state.running;
     els.pauseBtn.disabled = !state.running;
     els.pauseBtn.textContent = state.paused ? "Resume" : "Pause";
+}
+
+function getEventClientPosition(event) {
+    if (event.changedTouches && event.changedTouches.length) {
+        return {
+            clientX: event.changedTouches[0].clientX,
+            clientY: event.changedTouches[0].clientY
+        };
+    }
+
+    if (event.touches && event.touches.length) {
+        return {
+            clientX: event.touches[0].clientX,
+            clientY: event.touches[0].clientY
+        };
+    }
+
+    return {
+        clientX: event.clientX,
+        clientY: event.clientY
+    };
 }
 
 function getRunConfig() {
@@ -985,6 +1040,7 @@ async function startSimulation() {
     }
 
     const config = getRunConfig();
+    focusStageOnMobile();
 
     resetToBase(false);
     state.running = true;
@@ -1130,6 +1186,10 @@ function wireEvents() {
         button.addEventListener("click", () => setTool(button.dataset.tool));
     });
 
+    els.mobileViewButtons.forEach((button) => {
+        button.addEventListener("click", () => setMobileView(button.dataset.mobileView));
+    });
+
     els.delayRange.addEventListener("input", () => {
         els.delayInput.value = els.delayRange.value;
     });
@@ -1154,16 +1214,35 @@ function wireEvents() {
         }
     });
 
-    els.simCanvas.addEventListener("mousemove", (event) => {
+    els.simCanvas.addEventListener("pointermove", (event) => {
         state.cursorWorld = screenToWorld(event.clientX, event.clientY);
         render();
     });
-    els.simCanvas.addEventListener("mouseleave", () => {
+    els.simCanvas.addEventListener("pointerleave", () => {
         state.cursorWorld = null;
         render();
     });
-    els.simCanvas.addEventListener("click", handleCanvasInteraction);
+    els.simCanvas.addEventListener("pointerdown", (event) => {
+        if (event.pointerType !== "mouse") {
+            event.preventDefault();
+        }
+        handleCanvasInteraction(event);
+    });
+    els.simCanvas.addEventListener("pointerup", (event) => {
+        if (event.pointerType === "touch" || event.pointerType === "pen") {
+            state.cursorWorld = null;
+            render();
+        }
+    });
+    els.simCanvas.addEventListener("pointercancel", () => {
+        state.cursorWorld = null;
+        render();
+    });
     window.addEventListener("resize", () => { resizeCanvas(); render(); });
+    window.addEventListener("simulator:layout", () => {
+        resizeCanvas();
+        render();
+    });
 }
 
 function initialize() {
@@ -1174,6 +1253,7 @@ function initialize() {
     state.colors = generateColors(sample.centroids.length);
     syncTextareasFromBase();
     resetToBase(false);
+    setMobileView("stage");
     setMode("manual");
     setTool("point");
     syncControlState();

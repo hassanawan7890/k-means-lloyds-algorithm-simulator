@@ -22,6 +22,7 @@
     --red-d:    rgba(248,113,113,0.13);
     --radius:   10px;
     --radius-lg:16px;
+    --topbar-height: 52px;
 }
 
 html, body {
@@ -39,7 +40,7 @@ html, body {
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 100;
-    height: 52px;
+    height: var(--topbar-height);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -83,10 +84,36 @@ html, body {
 /* ── SIMULATOR LAYOUT ── */
 .sim-layout {
     display: grid;
-    grid-template-columns: 310px 1fr;
-    height: calc(100vh - 52px);
-    margin-top: 52px;
+    grid-template-columns: 310px minmax(0, 1fr);
+    height: calc(100vh - var(--topbar-height));
+    height: calc(100dvh - var(--topbar-height));
+    margin-top: var(--topbar-height);
     overflow: hidden;
+}
+
+.mobile-workspace-toggle { display: none; }
+
+.mobile-workspace-button {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--s2);
+    color: var(--muted);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 11px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 150ms;
+}
+
+.mobile-workspace-button:hover { color: var(--text); border-color: var(--border2); }
+
+.mobile-workspace-button.active {
+    color: #fff;
+    background: var(--purple);
+    border-color: var(--purple);
+    box-shadow: 0 0 22px rgba(139,92,246,0.22);
 }
 
 /* ── SIDEBAR ── */
@@ -96,6 +123,7 @@ html, body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-width: 0;
 }
 
 .sidebar-tabs {
@@ -377,6 +405,7 @@ html, body {
     flex-direction: column;
     overflow: hidden;
     background: var(--bg);
+    min-width: 0;
 }
 
 /* ── STAT BAR ── */
@@ -424,6 +453,7 @@ html, body {
     min-height: 0;
     position: relative;
     background: var(--bg);
+    padding: 12px;
 }
 
 #simCanvas {
@@ -440,6 +470,9 @@ html, body {
         0 32px 80px rgba(0,0,0,0.6);
     background: #0d0f1e;
     cursor: crosshair;
+    max-width: calc(100% - 24px);
+    max-height: calc(100% - 24px);
+    touch-action: none;
 }
 
 /* ── CANVAS FOOTER ── */
@@ -478,7 +511,7 @@ html, body {
     max-width: 920px;
     margin: 0 auto;
     padding: 64px 36px 88px;
-    margin-top: 52px;
+    margin-top: var(--topbar-height);
 }
 
 .content-header { margin-bottom: 52px; }
@@ -734,6 +767,28 @@ html, body {
     .fb-layout { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 720px) {
+    .topbar-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .mode-switch,
+    .gen-grid { grid-template-columns: 1fr; }
+
+    .btn-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-row .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .sidebar-tabs,
+    .stab-panel { padding-left: 16px; padding-right: 16px; }
+
+    .canvas-wrap { min-height: clamp(280px, 52vh, 440px); }
+}
+
 /* ── ANIMATIONS ── */
 @keyframes fadein {
     from { opacity: 0; transform: translateY(6px); }
@@ -742,16 +797,144 @@ html, body {
 
 /* ── RESPONSIVE ── */
 @media (max-width: 960px) {
-    .sim-layout { grid-template-columns: 1fr; height: auto; }
-    .sidebar { border-right: none; border-bottom: 1px solid var(--border); overflow: visible; }
+    .topbar {
+        position: sticky;
+        height: auto;
+        padding: 14px 16px 12px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .topbar-brand { justify-content: center; }
+
+    .topbar-nav {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .nav-tab {
+        padding: 10px 8px;
+        font-size: 12.5px;
+    }
+
+    .mobile-workspace-toggle {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 14px 16px 0;
+    }
+
+    .sim-layout {
+        display: block;
+        margin-top: 0;
+        height: auto;
+        min-height: 0;
+    }
+
+    .sim-layout[data-mobile-view="stage"] .sidebar { display: none; }
+    .sim-layout[data-mobile-view="sidebar"] .stage { display: none; }
+
+    .sidebar,
+    .stage {
+        min-height: calc(100vh - 188px);
+        min-height: calc(100dvh - 188px);
+    }
+
+    .sidebar {
+        border-right: none;
+        border-bottom: none;
+        overflow: visible;
+    }
+
     .stab-panel { overflow: visible; max-height: none; }
-    .stage { min-height: 500px; }
-    .canvas-wrap { min-height: 380px; }
+
+    .stat-bar {
+        height: auto;
+        min-height: 50px;
+        padding: 14px 16px;
+        flex-wrap: wrap;
+        gap: 10px 0;
+    }
+
+    .stat-item {
+        padding: 0 14px 0 0;
+        border-right: none;
+    }
+
+    .stat-item:first-child { padding-left: 0; }
+
+    .stat-sep { display: none; }
+
+    .canvas-wrap { min-height: clamp(320px, 58vh, 540px); }
+
+    .canvas-foot {
+        padding: 12px 16px 16px;
+        gap: 10px 14px;
+    }
+
+    .status-note {
+        margin-left: 0;
+        width: 100%;
+        max-width: none;
+        text-align: left;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .content-page {
+        margin-top: 0;
+        padding: 44px 22px 64px;
+    }
+
     .guide-grid { grid-template-columns: 1fr; }
     .about-cols { grid-template-columns: 1fr; }
+    .fb-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+    .topbar-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .mode-switch,
+    .gen-grid { grid-template-columns: 1fr; }
+
+    .btn-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-row .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .sidebar-tabs,
+    .stab-panel { padding-left: 16px; padding-right: 16px; }
+
+    .canvas-wrap { min-height: clamp(280px, 52vh, 440px); }
 }
 
 @media (max-width: 600px) {
-    .stat-bar { padding: 0 14px; overflow-x: auto; }
-    .content-page { padding: 44px 22px 64px; }
+    .topbar-brand {
+        justify-content: flex-start;
+        font-size: 13.5px;
+    }
+
+    .nav-tab { font-size: 12px; }
+
+    .tool-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .field textarea { min-height: 104px; }
+
+    .stat-bar strong { font-size: 13px; }
+
+    .content-page { padding: 36px 16px 52px; }
+
+    .guide-card,
+    .about-card,
+    .fb-card,
+    .algo-step { padding: 18px; }
 }

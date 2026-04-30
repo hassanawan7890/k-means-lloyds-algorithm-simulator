@@ -1,4 +1,4 @@
-# K-Means & Lloyd's Algorithm Simulator
+# KMeans Simulator
 
 Deployable app folder for the live simulator.
 

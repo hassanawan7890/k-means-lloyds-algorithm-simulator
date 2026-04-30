@@ -1,4 +1,4 @@
-# K-Means & Lloyd's Algorithm Simulator
+# KMeans Simulator
 
 Interactive web app for visualizing k-means clustering and the Lloyd-Forgy update process in real time.
 
@@ -23,6 +23,7 @@ The app is designed for:
 - random dataset generation with seed-based reproducibility
 - adjustable animation delay and centroid interpolation frames
 - epsilon-based stopping or max-iteration stopping
+- mobile-friendly simulator workspace with touch canvas support
 - guide and theory pages built into the app
 - feedback page that opens an email draft to `hassanawan789@outlook.com`
 
