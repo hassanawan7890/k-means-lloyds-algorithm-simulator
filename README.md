@@ -2,7 +2,7 @@
 
 Interactive web app for visualizing k-means clustering and the Lloyd-Forgy update process in real time.
 
-Live demo: https://k-means-lloyds-algorithm-simulator.vercel.app
+Live demo: https://kmeans-simulator.vercel.app
 
 ## Overview
 
@@ -77,7 +77,7 @@ The deployable app lives in [kmeans-app](./kmeans-app).
 
 This repository is connected to Vercel.
 
-- production site: `https://k-means-lloyds-algorithm-simulator.vercel.app`
+- production site: `https://kmeans-simulator.vercel.app`
 - GitHub repository: `https://github.com/hassanawan7890/k-means-lloyds-algorithm-simulator`
 - Vercel project root: `kmeans-app`
 - production branch: `main`

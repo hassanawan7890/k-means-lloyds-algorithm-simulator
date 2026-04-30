@@ -2,7 +2,7 @@
 
 Deployable app folder for the live simulator.
 
-Live demo: https://k-means-lloyds-algorithm-simulator.vercel.app
+Live demo: https://kmeans-simulator.vercel.app
 
 ## Run locally
 
